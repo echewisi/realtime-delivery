@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { WsAdapter } from '@nestjs/platform-ws';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as compression from 'compression';
 import { AppModule } from './app.module';
@@ -37,8 +37,8 @@ async function bootstrap() {
     SwaggerModule.setup('api/docs', app, document, {
     });
 
-    // Configure WebSocket adapter
-    app.useWebSocketAdapter(new WsAdapter(app));
+    // Configure Socket.IO adapter with CORS
+    app.useWebSocketAdapter(new IoAdapter(app));
 
     // Validation pipe configuration
     app.useGlobalPipes(new ValidationPipe({
