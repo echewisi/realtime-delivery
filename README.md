@@ -228,7 +228,6 @@ npm run test:cov
 
 ## Monitoring and Logging
 
-- Application logs are stored in the `logs` directory
 - Use PM2 or similar for process management
 - Monitor RabbitMQ queues for message processing
 - Track database performance metrics
