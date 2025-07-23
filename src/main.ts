@@ -86,22 +86,22 @@ async function bootstrap() {
     logger.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.log(`Database: ${process.env.DB_HOST || 'localhost'}`);
     
-    // Graceful shutdown
-    const signals = ['SIGTERM', 'SIGINT'];
-    signals.forEach(signal => {
-      process.on(signal, async () => {
-        logger.warn(`Received ${signal}, starting graceful shutdown...`);
+    // // Graceful shutdown
+    // const signals = ['SIGTERM', 'SIGINT'];
+    // signals.forEach(signal => {
+    //   process.on(signal, async () => {
+    //     logger.warn(`Received ${signal}, starting graceful shutdown...`);
         
-        try {
-          await app.close();
-          logger.log('Application shut down successfully');
-          process.exit(0);
-        } catch (error) {
-          logger.error('Error during shutdown:', error);
-          process.exit(1);
-        }
-      });
-    });
+    //     try {
+    //       await app.close();
+    //       logger.log('Application shut down successfully');
+    //       process.exit(0);
+    //     } catch (error) {
+    //       logger.error('Error during shutdown:', error);
+    //       process.exit(1);
+    //     }
+    //   });
+    // });
 
   } catch (error) {
     logger.error('Error during application bootstrap:', error);
