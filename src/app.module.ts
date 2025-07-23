@@ -11,13 +11,22 @@ import { OrdersController } from './orders/orders.controller';
 import { RidersController } from './riders/riders.controller';
 import { DispatchController } from './dispatch/dispatch.controller';
 import { CustomLogger } from './common/logger/logger.service';
+import { RidersModule } from './riders/riders.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      load: [
+        () => ({
+          JWT_SECRET: process.env.JWT_SECRET || 'default-secret-key',
+        }),
+      ],
     }),
+    RidersModule,
+    AuthModule
   ],
   controllers: [
     AppController,

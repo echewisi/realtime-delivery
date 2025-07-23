@@ -35,6 +35,7 @@ async function bootstrap() {
       .addTag('orders', 'Order management endpoints')
       .addTag('riders', 'Rider management endpoints')
       .addTag('dispatch', 'Dispatch system endpoints')
+      .addTag('auth', 'Authentication endpoints')
       .addBearerAuth()
       .build();
 

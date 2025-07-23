@@ -7,6 +7,7 @@ export async function up(knex: Knex): Promise<void> {
     table.string('name').notNullable();
     table.string('email').unique();
     table.string('phone').unique();
+    table.string('password').notNullable();
     table.boolean('is_available').defaultTo(false);
     table.decimal('current_latitude', 10, 8).nullable();
     table.decimal('current_longitude', 11, 8).nullable();

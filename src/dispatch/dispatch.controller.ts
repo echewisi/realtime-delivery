@@ -8,7 +8,7 @@ import { CustomLogger } from '../common/logger/logger.service';
 
 @ApiTags('dispatch')
 @ApiBearerAuth()
-@Controller('api/dispatch')
+@Controller('dispatch')
 export class DispatchController {
   constructor(
     private readonly dispatchGateway: DispatchGateway,

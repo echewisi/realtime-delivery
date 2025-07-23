@@ -8,7 +8,7 @@ import { OrderStatus, OrderResponse, UpdateOrderStatusDto } from '../dto/order.d
 
 @ApiTags('orders')
 @ApiBearerAuth()
-@Controller('api/orders')
+@Controller('orders')
 export class OrdersController {
   constructor(
     private readonly ordersService: OrdersService,

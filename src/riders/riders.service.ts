@@ -29,6 +29,16 @@ export class RidersService {
     }
   }
 
+  async findByEmail(email: string): Promise<Rider | undefined> {
+    try {
+      const rider = await this.db.knex('riders').where('email', email).first();
+      return rider;
+    } catch (error) {
+      this.logger.error(`Failed to find rider with email ${email}`, error.stack, 'findByEmail');
+      throw error;
+    }
+  }
+
   async findAllActiveRiders(): Promise<Rider[]> {
     try {
       return this.db

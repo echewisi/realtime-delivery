@@ -3,11 +3,12 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery, ApiBearerAuth }
 import { RidersService } from './riders.service';
 import { DispatchGateway } from '../websockets/dispatch.gateway';
 import { UpdateRiderLocationDto, UpdateRiderAvailabilityDto } from '../dto/rider.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RiderLocationResponse } from '../dto/responses.dto';
 
 @ApiTags('riders')
 @ApiBearerAuth()
-@Controller('api/riders')
+@Controller('riders')
 export class RidersController {
   constructor(
     private readonly ridersService: RidersService,
@@ -23,16 +24,13 @@ export class RidersController {
     status: 400, 
     description: 'Invalid location coordinates' 
   })
-  @ApiQuery({ 
-    name: 'riderId', 
-    type: Number, 
-    description: 'ID of the rider to update' 
-  })
-  @Put('location')
+  @UseGuards(JwtAuthGuard)
+  @Put('/mee/location')
   async updateLocation(
-    @Query('riderId') riderId: number,
+    @Request() req,
     @Body() data: UpdateRiderLocationDto,
   ): Promise<void> {
+    const riderId = req.user.sub;
     await this.ridersService.updateLocation(riderId, data.latitude, data.longitude);
     
     // Broadcast location update through WebSocket
@@ -44,16 +42,12 @@ export class RidersController {
     status: 200, 
     description: 'Availability updated successfully' 
   })
-  @ApiQuery({ 
-    name: 'riderId', 
-    type: Number, 
-    description: 'ID of the rider to update' 
-  })
   @Put('availability')
   async updateAvailability(
-    @Query('riderId') riderId: number,
-    @Body() data: UpdateRiderAvailabilityDto,
+    @Request() req,
+    @Body() data  : UpdateRiderAvailabilityDto,
   ): Promise<void> {
+    const riderId = req.user.id;
     await this.ridersService.updateAvailability(riderId, data.isAvailable);
   }
 
@@ -62,11 +56,6 @@ export class RidersController {
     status: 200, 
     description: 'List of nearby riders with distances',
     type: [RiderLocationResponse] 
-  })
-  @ApiQuery({ 
-    name: 'latitude', 
-    type: Number, 
-    description: 'Center point latitude' 
   })
   @ApiQuery({ 
     name: 'longitude', 
