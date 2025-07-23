@@ -50,12 +50,14 @@ export class RidersController {
     description: 'Availability updated successfully' 
   })
   @Put('availability')
+  @UseGuards(JwtAuthGuard)
   async updateAvailability(
     @Request() req,
     @Body() data  : UpdateRiderAvailabilityDto,
   ): Promise<any> {
-    const riderId = req.user.id;
-    await this.ridersService.updateAvailability(riderId, data.isAvailable);
+    const riderId = req.user.userId;
+    const rider = await this.ridersService.updateAvailability(riderId, data.isAvailable);
+    return rider;
   }
 
   @ApiOperation({ summary: 'Find nearby available riders' })
