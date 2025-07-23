@@ -10,6 +10,7 @@ import { DispatchGateway } from './websockets/dispatch.gateway';
 import { OrdersController } from './orders/orders.controller';
 import { RidersController } from './riders/riders.controller';
 import { DispatchController } from './dispatch/dispatch.controller';
+import { CustomLogger } from './common/logger/logger.service';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { DispatchController } from './dispatch/dispatch.controller';
     OrdersService,
     RidersService,
     DispatchGateway,
+    CustomLogger
   ],
   exports: [
     DatabaseService,

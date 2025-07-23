@@ -1,6 +1,7 @@
 import { Knex } from 'knex';
 
 export async function up(knex: Knex): Promise<void> {
+  
   await knex.schema.createTable('riders', (table) => {
     table.increments('id').primary();
     table.string('name').notNullable();
@@ -26,6 +27,8 @@ export async function up(knex: Knex): Promise<void> {
     table.decimal('service_charge', 10, 2).defaultTo(0);
     table.jsonb('address_details').notNullable();
     table.jsonb('meals').notNullable();
+    table.decimal('amount').notNullable();
+    table.decimal('internal_profit').notNullable();
     table.decimal('lat', 10, 8).nullable();
     table.decimal('lng', 11, 8).nullable();
     table.string('cokitchen_polygon_id');
@@ -96,10 +99,18 @@ export async function up(knex: Knex): Promise<void> {
 }
 
 export async function down(knex: Knex): Promise<void> {
-  await knex.schema.dropTableIfExists('order_total_amount_history');
-  await knex.schema.dropTableIfExists('logs');
-  await knex.schema.dropTableIfExists('orders');
-  await knex.schema.dropTableIfExists('calculated_orders');
-  await knex.schema.dropTableIfExists('order_types');
-  await knex.schema.dropTableIfExists('riders');
+  try {
+    // Drop tables in reverse order of creation (due to foreign key constraints)
+    await knex.raw('DROP TABLE IF EXISTS order_total_amount_history CASCADE');
+    await knex.raw('DROP TABLE IF EXISTS logs CASCADE');
+    await knex.raw('DROP TABLE IF EXISTS orders CASCADE');
+    await knex.raw('DROP TABLE IF EXISTS calculated_orders CASCADE');
+    await knex.raw('DROP TABLE IF EXISTS order_types CASCADE');
+    await knex.raw('DROP TABLE IF EXISTS riders CASCADE');
+    
+
+  } catch (error) {
+    console.error('Error during migration rollback:', error);
+    throw error;
+  }
 }

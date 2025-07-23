@@ -33,7 +33,6 @@ export class OrdersController {
   @ApiResponse({ status: 400, description: 'Invalid order data' })
   async createOrder(@Body() orderData: CreateOrderDto): Promise<{ orderId: number }> {
     try {
-      // Pass the DTO directly - service will handle type conversions
       const orderId = await this.ordersService.createOrder(orderData);
       return { orderId };
     } catch (error) {

@@ -1,5 +1,7 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { ValidationPipe, Logger } from '@nestjs/common';
+import { AllExceptionsFilter } from './common/filters/http-exception.filter';
+import { CustomLogger } from './common/logger/logger.service';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -12,12 +14,15 @@ async function bootstrap() {
   try {
     // Create the application instance with specific platform
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-      logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+      logger: new CustomLogger(),
       cors: true
     });
 
     // Security middleware
     app.use(compression());
+
+    // Global exception filter
+    app.useGlobalFilters(new AllExceptionsFilter());
 
     // Set global prefix for all routes
     app.setGlobalPrefix('api');
@@ -75,7 +80,8 @@ async function bootstrap() {
     
     await app.listen(port, host);
     
-    logger.log(`🚀 Application is running on: http://${host}:${port}`);
+    logger.log(`🚀 Application is running on: http://localhost:${port}`);
+    logger.log(`🚀 find documentation at: http://localhost:${port}/api/docs`);
     logger.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.log(`Database: ${process.env.DB_HOST || 'localhost'}`);
     

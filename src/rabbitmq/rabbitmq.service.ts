@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Connection, Channel, connect, Options } from 'amqplib';
 import { 
   RiderLocationPayload,
@@ -7,6 +7,7 @@ import {
   OrderAssignedPayload 
 } from '../interfaces/message-payloads';
 import { Order } from '../models/order.model';
+import { CustomLogger } from '../common/logger/logger.service';
 
 interface QueueConfig {
   name: string;
@@ -18,14 +19,14 @@ interface QueueConfig {
 export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
   private connection: Connection;
   private channel: Channel;
-  private readonly logger = new Logger(RabbitMQService.name);
   private isConnected = false;
   private reconnectAttempts = 0;
   private readonly maxReconnectAttempts: number;
   private readonly reconnectInterval: number;
   private readonly rabbitmqUrl: string;
 
-  constructor() {
+  constructor(private readonly logger: CustomLogger) {
+    this.logger.setContext(RabbitMQService.name);
     // Load configuration from environment variables
     this.rabbitmqUrl = process.env.RABBITMQ_URL || 'amqp://guest:guest@localhost:5672';
     this.maxReconnectAttempts = parseInt(process.env.RABBITMQ_RECONNECT_ATTEMPTS || '5', 10);
@@ -107,7 +108,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       this.logger.log(`Connected to RabbitMQ at ${this.rabbitmqUrl.replace(/:[^:]*@/, ':***@')}`);
 
       (this.connection as any).on('error', (err) => {
-        this.logger.error('RabbitMQ connection error:', err);
+        this.logger.error('RabbitMQ connection error', err.stack, 'ConnectionError');
         this.handleConnectionError();
       });
 
@@ -132,7 +133,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
       this.logger.log('Successfully connected to RabbitMQ');
 
     } catch (error) {
-      this.logger.error('Failed to connect to RabbitMQ:', error);
+      this.logger.error('Failed to connect to RabbitMQ', error.stack, 'connect');
       this.handleConnectionError();
     }
   }
@@ -170,47 +171,67 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
 
       setTimeout(() => this.connect(), this.reconnectInterval);
     } else {
-      this.logger.error('Max reconnection attempts reached');
+      this.logger.error('Max reconnection attempts reached', '', 'handleConnectionError');
     }
   }
 
   async publishOrderCreated(order: OrderCreatedPayload['order']): Promise<void> {
-    const payload: OrderCreatedPayload = {
-      order,
-      timestamp: new Date().toISOString()
-    };
-    await this.publishMessage('orderCreated', payload);
+    try {
+      const payload: OrderCreatedPayload = {
+        order,
+        timestamp: new Date().toISOString()
+      };
+      await this.publishMessage('orderCreated', payload);
+    } catch (error) {
+      this.logger.error('Failed to publish order created event', error.stack, 'publishOrderCreated');
+      throw error;
+    }
   }
 
   async publishOrderUpdated(order: Order): Promise<void> {
-    const payload: OrderUpdatedPayload = {
-      order,
-      previousStatus: undefined,
-      newStatus: order.completed ? 'completed' : order.cancelled ? 'cancelled' : 'pending',
-      timestamp: new Date().toISOString()
-    };
-    await this.publishMessage('orderUpdated', payload);
+    try {
+      const payload: OrderUpdatedPayload = {
+        order,
+        previousStatus: undefined,
+        newStatus: order.completed ? 'completed' : order.cancelled ? 'cancelled' : 'pending',
+        timestamp: new Date().toISOString()
+      };
+      await this.publishMessage('orderUpdated', payload);
+    } catch (error) {
+      this.logger.error('Failed to publish order updated event', error.stack, 'publishOrderUpdated');
+      throw error;
+    }
   }
 
   async publishOrderAssigned(order: Order): Promise<void> {
-    if (!order.rider_id) {
-      throw new Error('Cannot publish order assignment: no rider assigned');
+    try {
+      if (!order.rider_id) {
+        throw new Error('Cannot publish order assignment: no rider assigned');
+      }
+      
+      const payload: OrderAssignedPayload = {
+        order,
+        riderId: parseInt(order.rider_id, 10),
+        timestamp: new Date().toISOString()
+      };
+      await this.publishMessage('orderAssigned', payload);
+    } catch (error) {
+      this.logger.error('Failed to publish order assigned event', error.stack, 'publishOrderAssigned');
+      throw error;
     }
-    
-    const payload: OrderAssignedPayload = {
-      order,
-      riderId: parseInt(order.rider_id, 10),
-      timestamp: new Date().toISOString()
-    };
-    await this.publishMessage('orderAssigned', payload);
   }
 
   async publishRiderLocation(locationUpdate: Omit<RiderLocationPayload, 'timestamp'>): Promise<void> {
-    const payload: RiderLocationPayload = {
-      ...locationUpdate,
-      timestamp: new Date().toISOString()
-    };
-    await this.publishMessage('riderLocation', payload);
+    try {
+      const payload: RiderLocationPayload = {
+        ...locationUpdate,
+        timestamp: new Date().toISOString()
+      };
+      await this.publishMessage('riderLocation', payload);
+    } catch (error) {
+      this.logger.error('Failed to publish rider location event', error.stack, 'publishRiderLocation');
+      throw error;
+    }
   }
 
   private async publishMessage(routingKey: string, data: any) {
@@ -238,7 +259,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
         throw new Error('Message could not be published');
       }
     } catch (error) {
-      this.logger.error(`Error publishing message to ${routingKey}:`, error);
+      this.logger.error(`Error publishing message to ${routingKey}`, error.stack, 'publishMessage');
       throw error;
     }
   }
@@ -288,7 +309,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
         }
       });
     } catch (error) {
-      this.logger.error(`Error setting up consumer for ${queueName}:`, error);
+      this.logger.error(`Error setting up consumer for ${queueName}`, error.stack, 'consumeMessages');
       throw error;
     }
   }
@@ -302,7 +323,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
         await (this.connection as any).close();
       }
     } catch (error) {
-      this.logger.error('Error closing RabbitMQ connections:', error);
+      this.logger.error('Error closing RabbitMQ connections', error.stack, 'onModuleDestroy');
     }
   }
 } 
