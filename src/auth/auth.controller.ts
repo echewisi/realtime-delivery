@@ -1,6 +1,6 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateRiderDto } from '../dto/rider.dto';
+import { CreateRiderDto, LoginRiderDto } from '../dto/rider.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('auth')
@@ -21,7 +21,7 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() loginDto: CreateRiderDto) {
+  async login(@Body() loginDto: LoginRiderDto) {
     return this.authService.login(loginDto);
   }
 }

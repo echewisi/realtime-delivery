@@ -36,6 +36,19 @@ export class CreateRiderDto {
   @IsNotEmpty()
   phone: string;
 
+      @ApiProperty({ example: 'password123', description: 'Rider\'s password' })
+      @IsString()
+      @MinLength(8)
+      @IsNotEmpty()
+      password: string;
+}
+
+export class LoginRiderDto {
+  @ApiProperty({ example: 'john.doe@example.com', description: 'Rider\'s email address' })
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
   @ApiProperty({ example: 'password123', description: 'Rider\'s password' })
   @IsString()
   @MinLength(8)

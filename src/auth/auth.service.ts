@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException, ConflictException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { RidersService } from '../riders/riders.service';
-import { CreateRiderDto } from '../dto/rider.dto';
+import { CreateRiderDto, LoginRiderDto } from '../dto/rider.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -30,7 +30,7 @@ export class AuthService {
     };
   }
 
-  async login(loginDto: CreateRiderDto): Promise<{ access_token: string }> {
+  async login(loginDto: LoginRiderDto): Promise<{ access_token: string }> {
     const rider = await this.ridersService.findByEmail(loginDto.email);
     if (!rider || !rider.password) {
       throw new UnauthorizedException('Invalid credentials');
