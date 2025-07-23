@@ -30,7 +30,10 @@ export class RidersController {
     @Request() req,
     @Body() data: UpdateRiderLocationDto,
   ): Promise<void> {
-    const riderId = req.user.sub;
+    const riderId = Number(req.user.userId);
+    if (isNaN(riderId)) {
+      throw new Error('Invalid user ID');
+    }
     await this.ridersService.updateLocation(riderId, data.latitude, data.longitude);
     
     // Broadcast location update through WebSocket

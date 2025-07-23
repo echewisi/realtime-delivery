@@ -32,16 +32,16 @@ export class AuthService {
 
   async login(loginDto: LoginRiderDto): Promise<{ access_token: string }> {
     const rider = await this.ridersService.findByEmail(loginDto.email);
-    if (!rider || !rider.password) {
+    if (!rider || !rider.rider?.password) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordMatching = await bcrypt.compare(loginDto.password, rider.password);
+    const isPasswordMatching = await bcrypt.compare(loginDto.password, rider.rider.password);
     if (!isPasswordMatching) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const payload = { email: rider.email, sub: rider.id };
+    const payload = { email: rider.rider.email, sub: rider.rider.id };
     return {
       access_token: this.jwtService.sign(payload),
     };

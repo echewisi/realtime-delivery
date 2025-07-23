@@ -14,7 +14,7 @@ export class RidersService {
     this.logger.setContext(RidersService.name);
   }
 
-  async findById(id: number): Promise<Rider> {
+  async findById(id: number): Promise<{ rider: Rider; message: string }> {
     try {
       const rider = await this.db.knex('riders').where('id', id).first();
 
@@ -22,38 +22,48 @@ export class RidersService {
         throw new NotFoundException(`Rider with ID ${id} not found`);
       }
 
-      return rider;
+      return {
+        rider,
+        message: 'Rider found successfully'
+      };
     } catch (error) {
       this.logger.error(`Failed to find rider with ID ${id}`, error.stack, 'findById');
       throw error;
     }
   }
 
-  async findByEmail(email: string): Promise<Rider | undefined> {
+  async findByEmail(email: string): Promise<{ rider: Rider | undefined; message: string }> {
     try {
       const rider = await this.db.knex('riders').where('email', email).first();
-      return rider;
+      return {
+        rider,
+        message: 'Rider found successfully'
+      };
     } catch (error) {
       this.logger.error(`Failed to find rider with email ${email}`, error.stack, 'findByEmail');
       throw error;
     }
   }
 
-  async findAllActiveRiders(): Promise<Rider[]> {
+  async findAllActiveRiders(): Promise<{ riders: Rider[]; message: string }> {
     try {
-      return this.db
+      const riders = await this.db
         .knex('riders')
         .where('is_available', true)
         .orderBy('updated_at', 'desc');
+      return {
+        riders,
+        message: 'Active riders retrieved successfully'
+      };
     } catch (error) {
       this.logger.error('Failed to find all active riders', error.stack, 'findAllActiveRiders');
       throw error;
     }
   }
 
-  async updateLocation(riderId: number, latitude: number, longitude: number): Promise<void> {
+  async updateLocation(riderId: number, latitude: number, longitude: number): Promise<{ message: string, data: any }> {
     try {
-      await this.db.knex.transaction(async (trx) => {
+      const updated_loc = await this.db.knex.transaction(async (trx) => {
         const updated = await trx('riders').where('id', riderId).update({
           current_latitude: latitude,
           current_longitude: longitude,
@@ -70,13 +80,17 @@ export class RidersService {
           longitude,
         });
       });
+      return {
+        message: 'Location updated successfully',
+        data: updated_loc
+      };
     } catch (error) {
       this.logger.error(`Failed to update location for rider ${riderId}`, error.stack, 'updateLocation');
       throw error;
     }
   }
 
-  async updateAvailability(riderId: number, isAvailable: boolean): Promise<void> {
+async updateAvailability(riderId: number, isAvailable: boolean): Promise<{ message: string, data: any }> {
     try {
       const updated = await this.db
         .knex('riders')
@@ -89,6 +103,10 @@ export class RidersService {
       if (!updated) {
         throw new NotFoundException(`Rider with ID ${riderId} not found`);
       }
+      return {
+        message: 'Availability updated successfully',
+        data: updated
+      };
     } catch (error) {
       this.logger.error(`Failed to update availability for rider ${riderId}`, error.stack, 'updateAvailability');
       throw error;
@@ -129,7 +147,7 @@ export class RidersService {
 
       return result.rows;
     } catch (error) {
-      this.logger.error('Failed to find nearby available riders', error.stack, 'findNearbyAvailableRiders');
+      this.logger.error('Failed to find nearby riders', error.stack, 'findNearbyAvailableRiders');
       throw error;
     }
   }
@@ -150,7 +168,7 @@ export class RidersService {
     }
   }
 
-  async countActiveRiders(): Promise<number> {
+  async countActiveRiders(): Promise<{ count: number; message: string }> {
     try {
       const result = await this.db
         .knex('riders')
@@ -158,7 +176,10 @@ export class RidersService {
         .count('id as count')
         .first();
 
-      return parseInt(result?.count as string ?? '0');
+      return {
+        count: parseInt(result?.count as string ?? '0'),
+        message: 'Active riders count retrieved successfully'
+      };
     } catch (error) {
       this.logger.error('Failed to count active riders', error.stack, 'countActiveRiders');
       throw error;

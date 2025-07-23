@@ -64,11 +64,11 @@ export class DispatchController {
 
       await this.dispatchGateway.sendOrderToRider(data.riderId, orderForBroadcast);
 
-      if (rider.current_latitude && rider.current_longitude) {
+      if (rider.rider.current_latitude && rider.rider.current_longitude) {
         this.dispatchGateway.handleRiderLocationUpdate(
           data.riderId,
-          rider.current_latitude,
-          rider.current_longitude,
+          rider.rider.current_latitude,
+          rider.rider.current_longitude,
         );
       }
 
