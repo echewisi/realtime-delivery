@@ -29,15 +29,19 @@ export class RidersController {
   async updateLocation(
     @Request() req,
     @Body() data: UpdateRiderLocationDto,
-  ): Promise<void> {
+  ): Promise<any> {
     const riderId = Number(req.user.userId);
     if (isNaN(riderId)) {
       throw new Error('Invalid user ID');
     }
-    await this.ridersService.updateLocation(riderId, data.latitude, data.longitude);
+    const rider= await this.ridersService.updateLocation(riderId, data.latitude, data.longitude);
+
     
     // Broadcast location update through WebSocket
     this.dispatchGateway.handleRiderLocationUpdate(riderId, data.latitude, data.longitude);
+
+    return rider
+
   }
 
   @ApiOperation({ summary: 'Update rider availability status' })
@@ -49,7 +53,7 @@ export class RidersController {
   async updateAvailability(
     @Request() req,
     @Body() data  : UpdateRiderAvailabilityDto,
-  ): Promise<void> {
+  ): Promise<any> {
     const riderId = req.user.id;
     await this.ridersService.updateAvailability(riderId, data.isAvailable);
   }

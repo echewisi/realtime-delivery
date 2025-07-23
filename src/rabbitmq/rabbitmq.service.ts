@@ -182,6 +182,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
         timestamp: new Date().toISOString()
       };
       await this.publishMessage('orderCreated', payload);
+      this.logger.log(`Order ${order.id} created and published`);
     } catch (error) {
       this.logger.error('Failed to publish order created event', error.stack, 'publishOrderCreated');
       throw error;
@@ -197,6 +198,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
         timestamp: new Date().toISOString()
       };
       await this.publishMessage('orderUpdated', payload);
+      this.logger.log(`Order ${order.id} updated: ${payload.newStatus}`);
     } catch (error) {
       this.logger.error('Failed to publish order updated event', error.stack, 'publishOrderUpdated');
       throw error;
@@ -215,6 +217,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
         timestamp: new Date().toISOString()
       };
       await this.publishMessage('orderAssigned', payload);
+      this.logger.log(`Order ${order.id} assigned to rider ${order.rider_id}`);
     } catch (error) {
       this.logger.error('Failed to publish order assigned event', error.stack, 'publishOrderAssigned');
       throw error;
@@ -228,6 +231,7 @@ export class RabbitMQService implements OnModuleInit, OnModuleDestroy {
         timestamp: new Date().toISOString()
       };
       await this.publishMessage('riderLocation', payload);
+      this.logger.log(`Rider ${locationUpdate.riderId} location published: ${locationUpdate.latitude}, ${locationUpdate.longitude}`);
     } catch (error) {
       this.logger.error('Failed to publish rider location event', error.stack, 'publishRiderLocation');
       throw error;

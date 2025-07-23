@@ -61,14 +61,16 @@ export class RidersService {
     }
   }
 
-  async updateLocation(riderId: number, latitude: number, longitude: number): Promise<{ message: string, data: any }> {
+  async updateLocation(riderId: number, latitude: number, longitude: number): Promise<{ message: string }> {
     try {
-      const updated_loc = await this.db.knex.transaction(async (trx) => {
+      await this.db.knex.transaction(async (trx) => {
         const updated = await trx('riders').where('id', riderId).update({
           current_latitude: latitude,
           current_longitude: longitude,
           updated_at: trx.fn.now(),
         });
+        // console.log(updated_loc)
+        console.log(updated)
 
         if (!updated) {
           throw new NotFoundException(`Rider with ID ${riderId} not found`);
@@ -82,7 +84,6 @@ export class RidersService {
       });
       return {
         message: 'Location updated successfully',
-        data: updated_loc
       };
     } catch (error) {
       this.logger.error(`Failed to update location for rider ${riderId}`, error.stack, 'updateLocation');

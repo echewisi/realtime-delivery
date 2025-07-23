@@ -27,6 +27,7 @@ export class DispatchGateway {
     try {
       const message: RiderLocationUpdateMessage = { riderId, latitude, longitude };
       this.server.emit('riderLocationUpdate', message);
+      this.logger.log(`Rider ${riderId} location updated: ${latitude}, ${longitude}`);
       // Also notify dispatch dashboard specifically
       this.broadcastToDispatchers('riderLocationUpdate', message);
     } catch (error) {
@@ -116,6 +117,7 @@ export class DispatchGateway {
         this.broadcastToDispatchers('orderAccepted', data);
         this.logger.log(`Order ${data.orderId} accepted by rider ${data.riderId}`);
       }
+      this.logger.log(`Order ${data.orderId} accepted by rider ${data.riderId}`);
     } catch (error) {
       this.logger.error(`Failed to handle order accepted by rider ${data.riderId}`, error.stack, 'handleOrderAccepted');
     }
@@ -131,6 +133,7 @@ export class DispatchGateway {
         this.broadcastToDispatchers('orderRejected', data);
         this.logger.log(`Order ${data.orderId} rejected by rider ${data.riderId}`);
       }
+      this.logger.log(`Order ${data.orderId} rejected by rider ${data.riderId}`);
     } catch (error) {
       this.logger.error(`Failed to handle order rejected by rider ${data.riderId}`, error.stack, 'handleOrderRejected');
     }
@@ -146,6 +149,7 @@ export class DispatchGateway {
         this.broadcastToDispatchers('orderDelivered', data);
         this.logger.log(`Order ${data.orderId} delivered by rider ${data.riderId}`);
       }
+      this.logger.log(`Order ${data.orderId} delivered by rider ${data.riderId}`);
     } catch (error) {
       this.logger.error(`Failed to handle order delivered by rider ${data.riderId}`, error.stack, 'handleOrderDelivered');
     }
@@ -156,6 +160,7 @@ export class DispatchGateway {
       this.dispatchSockets.forEach(socketId => {
         this.server.to(socketId).emit(event, data);
       });
+      this.logger.log(`Broadcasted event '${event}' to dispatchers`);
     } catch (error) {
       this.logger.error(`Failed to broadcast event '${event}' to dispatchers`, error.stack, 'broadcastToDispatchers');
     }
